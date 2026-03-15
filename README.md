@@ -59,6 +59,14 @@ Evaluation output is saved to `results/evaluation_results.csv`.
 - Place `crag_task_1_and_2_dev_v4.jsonl` in `dataset/`
 - Schema: `docs/dataset.md`
 
+---
+
+## Report
+
+Full implementation notes, pipeline analysis, and evaluation results:
+
+**[View Report →](report.md)**
+
 ## Notes
 
 - Full assignment details: `ASSIGNMENT.md`
