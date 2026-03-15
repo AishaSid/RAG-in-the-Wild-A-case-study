@@ -54,20 +54,37 @@ All `page_snippet` texts from all rows form the global corpus. Build one embeddi
 
 ## Running the project
 
-**Evaluation (run from project root):**
+**Step 1 — Backend (required for the frontend to work):**
 
 ```bash
-python run_evaluation.py
+# Run from project root (keeps running in its own terminal)
+python backend/app.py
 ```
 
-**Frontend (run from project root):**
+The Flask API starts on `http://localhost:8000`. Keep this terminal open.
+
+> **Windows PowerShell note:** if you see import errors, set the Python path first:
+> ```powershell
+> $env:PYTHONPATH = (Get-Location).Path
+> python backend/app.py
+> ```
+
+**Step 2 — Frontend (run from project root):**
 
 ```bash
 cd frontend
 npm run dev
 ```
 
-Open the URL shown (e.g. http://localhost:3000). You need a backend that loads the index and runs the selected pipeline; the React app will call that backend.
+Open the URL shown (e.g. http://localhost:3000). The React app proxies all `/api/*` requests to the backend.
+
+**Evaluation (run from project root):**
+
+```bash
+python run_evaluation.py
+```
+
+Results are saved to `results/evaluation_results.csv`.
 
 ---
 
