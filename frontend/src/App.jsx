@@ -1,10 +1,22 @@
 import { useEffect, useMemo, useState } from 'react'
 
 const PIPELINES = [
-  { label: 'RAG Fusion (Recommended)', value: 'rag_fusion' },
-  { label: 'HyDE', value: 'hyde' },
-  { label: 'CRAG', value: 'crag' },
-  { label: 'Graph RAG', value: 'graph_rag' },
+  {
+    label: 'RAG Fusion (Recommended)', value: 'rag_fusion',
+    desc: 'Generates multiple query variants, retrieves for each independently, then merges all results using Reciprocal Rank Fusion (RRF) for robust, diverse ranking.',
+  },
+  {
+    label: 'HyDE', value: 'hyde',
+    desc: 'Hypothetical Document Embeddings — generates a plausible fake answer first, then retrieves real corpus chunks by embedding similarity to that hypothetical answer.',
+  },
+  {
+    label: 'CRAG', value: 'crag',
+    desc: 'Corrective RAG — judges retrieval quality as CORRECT / AMBIGUOUS / INCORRECT and falls back to model internal knowledge when retrieval confidence is low. Cites sources in IEEE style.',
+  },
+  {
+    label: 'Graph RAG', value: 'graph_rag',
+    desc: 'Seeds retrieval with vector search, then expands the result set by traversing keyword-based entity links across the full CRAG corpus.',
+  },
 ]
 
 const DATASET_DOMAINS = [
@@ -50,6 +62,7 @@ export default function App() {
   const [error, setError] = useState('')
   const [result, setResult] = useState(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     fetch('/api/sample-queries?limit=10')
@@ -85,6 +98,25 @@ export default function App() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const copyAnswer = () => {
+    if (!result?.answer) return
+    navigator.clipboard.writeText(result.answer).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }).catch(() => {
+      const ta = document.createElement('textarea')
+      ta.value = result.answer
+      ta.style.position = 'fixed'
+      ta.style.opacity = '0'
+      document.body.appendChild(ta)
+      ta.select()
+      document.execCommand('copy')
+      document.body.removeChild(ta)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
   }
 
   return (
@@ -181,6 +213,12 @@ export default function App() {
                   </option>
                 ))}
               </select>
+              {PIPELINES.find(p => p.value === pipeline)?.desc && (
+                <p style={styles.pipelineDesc}>
+                  <span style={{ color: '#4f46e5', fontWeight: 700 }}>ℹ</span>{' '}
+                  {PIPELINES.find(p => p.value === pipeline).desc}
+                </p>
+              )}
             </div>
 
             <button style={{...styles.button, opacity: canRun ? 1 : 0.6}} disabled={!canRun} onClick={runQuery}>
@@ -206,6 +244,16 @@ export default function App() {
 
         {error && <div style={styles.error}><strong>Error:</strong> {error}</div>}
 
+        {!result && !error && !loading && (
+          <section style={styles.emptyState}>
+            <div style={styles.emptyIcon}>🔍</div>
+            <h3 style={styles.emptyTitle}>Ready to explore</h3>
+            <p style={styles.emptyText}>
+              Type a question above and select a pipeline to compare retrieval strategies across the CRAG corpus.
+            </p>
+          </section>
+        )}
+
         {result && (
           <section style={styles.resultsArea}>
             {/* Primary Answer Card */}
@@ -215,11 +263,21 @@ export default function App() {
                   <span style={styles.icon}>✨</span>
                   <h2 style={styles.cardTitle}>Generated Answer</h2>
                 </div>
-                {result.confidence && (
-                  <div style={styles.confidenceBadge}>
-                    CRAG Assessment: <strong>{result.confidence.toUpperCase()}</strong>
-                  </div>
-                )}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {result.confidence && (
+                    <div style={styles.confidenceBadge}>
+                      CRAG Assessment: <strong>{result.confidence.toUpperCase()}</strong>
+                    </div>
+                  )}
+                  <button
+                    className="copy-btn"
+                    style={{ ...styles.copyBtn, ...(copied ? styles.copiedBtn : {}) }}
+                    onClick={copyAnswer}
+                    title="Copy answer to clipboard"
+                  >
+                    {copied ? '✓ Copied!' : 'Copy'}
+                  </button>
+                </div>
               </div>
               <div style={styles.answerContent}>
                 {result.answer || "The model could not generate an answer."}
@@ -229,12 +287,14 @@ export default function App() {
             {/* Retrieved Chunks Grid */}
             <div style={styles.chunksHeader}>
               <h3 style={styles.chunksTitle}>Retrieved Context</h3>
-              <span style={styles.chunksMeta}>{result.retrieved?.length || 0} snippets retrieved</span>
+              <span style={styles.sourceBadge}>
+                {result.retrieved?.length || 0} Sources Found
+              </span>
             </div>
 
             <div style={styles.retrievalGrid}>
               {(result.retrieved || []).map((chunk, idx) => {
-                const score = Number(chunk.score || 0).toFixed(4);
+                const score = chunk.score != null ? Number(chunk.score).toFixed(4) : 'N/A';
                 return (
                   <article key={idx} style={styles.chunkCard}>
                     <div style={styles.chunkHead}>
@@ -280,6 +340,9 @@ const globalStyles = `
     margin-right: 8px;
   }
   @keyframes spin { 100% { transform: rotate(360deg); } }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  
+  .copy-btn:hover { background: #e4e4e7 !important; }
 `
 
 const styles = {
@@ -659,5 +722,72 @@ const styles = {
     lineHeight: 1.4,
     color: '#3f3f46',
     transition: 'all 0.2s',
+  },
+  emptyState: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '64px 24px',
+    background: '#ffffff',
+    border: '1px solid #e4e4e7',
+    borderRadius: '16px',
+    textAlign: 'center',
+    animation: 'fadeIn 0.4s ease-out',
+  },
+  emptyIcon: {
+    fontSize: '3.5rem',
+    marginBottom: '16px',
+  },
+  emptyTitle: {
+    margin: '0 0 10px',
+    fontSize: '1.3rem',
+    fontWeight: 600,
+    color: '#18181b',
+  },
+  emptyText: {
+    margin: 0,
+    fontSize: '0.95rem',
+    color: '#71717a',
+    maxWidth: '440px',
+    lineHeight: 1.6,
+  },
+  copyBtn: {
+    fontFamily: 'inherit',
+    fontSize: '0.8rem',
+    fontWeight: 600,
+    background: '#f4f4f5',
+    color: '#3f3f46',
+    border: '1px solid #e4e4e7',
+    borderRadius: '8px',
+    padding: '6px 14px',
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+    whiteSpace: 'nowrap',
+  },
+  copiedBtn: {
+    background: '#f0fdf4',
+    color: '#166534',
+    borderColor: '#bbf7d0',
+  },
+  pipelineDesc: {
+    margin: '8px 0 0',
+    fontSize: '0.8rem',
+    color: '#52525b',
+    lineHeight: 1.5,
+    background: '#f8f8ff',
+    border: '1px solid #e0e7ff',
+    borderRadius: '8px',
+    padding: '8px 12px',
+  },
+  sourceBadge: {
+    fontFamily: "'JetBrains Mono', monospace",
+    fontSize: '0.75rem',
+    fontWeight: 600,
+    background: '#eff6ff',
+    color: '#1d4ed8',
+    border: '1px solid #bfdbfe',
+    padding: '4px 12px',
+    borderRadius: '999px',
   },
 }
