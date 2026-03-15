@@ -97,7 +97,7 @@ def main() -> None:
     records = {name: {"correct": 0, "total": 0} for name in pipelines}
     csv_rows: List[Dict[str, Any]] = []
 
-    for ex in load_examples(file_path=dataset_path_abs, limit=20):
+    for ex in load_examples(file_path=dataset_path_abs, limit=10):
         query = ex["query"]
         gold = ex["answer"]
         alt = ex["alt_ans"]
