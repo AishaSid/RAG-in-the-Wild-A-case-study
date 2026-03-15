@@ -11,7 +11,10 @@ import numpy as np
 from sentence_transformers import SentenceTransformer
 from tqdm import tqdm
 
-from data_loader import load_crag_data
+try:
+    from src.data_loader import load_crag_data
+except Exception:  # pragma: no cover - supports running corpus.py directly from src/
+    from data_loader import load_crag_data
 
 
 def build_index(
@@ -43,6 +46,8 @@ def build_index(
     index = faiss.IndexFlatL2(dim)
     index.add(embeddings)
 
+    Path(index_save_path).parent.mkdir(parents=True, exist_ok=True)
+    Path(mapping_save_path).parent.mkdir(parents=True, exist_ok=True)
     faiss.write_index(index, index_save_path)
     with open(mapping_save_path, "wb") as f:
         pickle.dump(unique_snippets, f)

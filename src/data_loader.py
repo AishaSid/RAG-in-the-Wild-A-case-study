@@ -73,3 +73,23 @@ def load_crag_data(file_path: str) -> Generator[Dict[str, object], None, None]:
             "answer": row.get("answer", ""),
             "snippets": snippets,
         }
+
+
+def load_examples(file_path: str, limit: int | None = None) -> Generator[Dict[str, object], None, None]:
+    """Yield richer examples for evaluation/frontend usage."""
+    path = Path(file_path)
+    if not path.exists():
+        raise FileNotFoundError(f"Dataset not found: {path}")
+
+    count = 0
+    for row in _iter_json_objects(path):
+        search_results = row.get("search_results") or []
+        yield {
+            "query": row.get("query", ""),
+            "answer": row.get("answer", ""),
+            "alt_ans": row.get("alt_ans") or [],
+            "search_results": search_results,
+        }
+        count += 1
+        if limit is not None and count >= limit:
+            return
