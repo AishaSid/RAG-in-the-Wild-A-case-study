@@ -1,0 +1,11 @@
+{
+  "rewrites": [
+    { "source": "/ask", "destination": "/api/app" },
+    { "source": "/api/(.*)", "destination": "/api/app" }
+  ],
+  "functions": {
+    "api/app.py": {
+      "runtime": "vercel-python@0.0.6"
+    }
+  }
+}

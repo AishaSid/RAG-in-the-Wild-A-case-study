@@ -1,93 +1,65 @@
-# RAG in the Wild — Case Study Assignment
+# RAG in the Wild: A Case Study
 
-This assignment is framed as a **case study**: you work with a real-world-style corpus (web search results across multiple domains) and implement four advanced RAG strategies—RAG Fusion, HyDE, CRAG, and Graph RAG—to see which best handles noisy retrieval and varied question types. See **ASSIGNMENT.md** for the full scenario and requirements.
+A case study implementing and comparing advanced RAG pipelines (RAG Fusion, HyDE, CRAG, and Graph RAG) on the CRAG dataset, with evaluation metrics and an interactive web demo.
 
-## Requirements
+## Tech Stack
 
-- Python 3.9+
-- Node.js 18+ (for the React frontend)
+- Python (retrieval, pipelines, evaluation, Flask API)
+- React + Vite (frontend)
+- FAISS + sentence-transformers (global corpus retrieval)
 
----
+## Pipelines
 
-## Setup
+- RAG Fusion
+- HyDE
+- CRAG
+- Graph RAG
 
-### Python (backend and pipelines)
+## Quick Start
+
+1. Install dependencies:
 
 ```bash
 pip install -r requirements.txt
-```
-
-Copy `config/config.example.yaml` to `config/config.yaml` and set:
-
-- `dataset_path` — path to `dataset/crag_task_1_and_2_dev_v4.jsonl`
-- `embedding_model` — e.g. `all-MiniLM-L6-v2`
-- `generation_model` — model name for the LLM you use for answer generation (see below)
-- `top_k` — number of chunks to retrieve per query
-
-**LLM / API policy:** **Do not use an OpenAI API key.** Use a **Groq** API key, or a **free** option such as **Google Gemini** (free tier), or another free/local LLM.
-
-Do not commit `config.yaml` if it contains API keys.
-
-### Frontend (React)
-
-```bash
 cd frontend
 npm install
+cd ..
 ```
 
----
+2. Configure:
 
-## Dataset
+- Copy `config/config.example.yaml` to `config/config.yaml`
+- Set dataset/model values (`dataset_path`, `generation_model`, `top_k`)
+- Use Groq/Gemini or another free/local provider (no OpenAI key)
 
-This assignment uses the **CRAG Task 1 & 2 dev v4** dataset. 
-Download the dataset and place it in the `dataset/` folder yourself.
-
-- **Download (Task 1 & 2, compressed):** [crag_task_1_and_2_dev_v4.jsonl.bz2](https://github.com/facebookresearch/CRAG/raw/refs/heads/main/data/crag_task_1_and_2_dev_v4.jsonl.bz2)
-- Decompress the file (e.g. with 7-Zip or `bzip2 -d`), then put the resulting `crag_task_1_and_2_dev_v4.jsonl` inside the `dataset/` folder.
-- **Path after setup:** `dataset/crag_task_1_and_2_dev_v4.jsonl`
-- **Format:** One JSON object per line. Fields: `query`, `answer`, `alt_ans`, `search_results` (list of up to 5 items; each has `page_snippet`).
-- **Schema:** See `docs/dataset.md`.
-
-All `page_snippet` texts from all rows form the global corpus. Build one embedding index from this corpus; all four pipelines retrieve from it.
-
----
-
-## Running the project
-
-**Step 1 — Backend (required for the frontend to work):**
+3. Run backend:
 
 ```bash
-# Run from project root (keeps running in its own terminal)
 python backend/app.py
 ```
 
-The Flask API starts on `http://localhost:8000`. Keep this terminal open.
-
-> **Windows PowerShell note:** if you see import errors, set the Python path first:
-> ```powershell
-> $env:PYTHONPATH = (Get-Location).Path
-> python backend/app.py
-> ```
-
-**Step 2 — Frontend (run from project root):**
+4. Run frontend:
 
 ```bash
 cd frontend
 npm run dev
 ```
 
-Open the URL shown (e.g. http://localhost:3000). The React app proxies all `/api/*` requests to the backend.
-
-**Evaluation (run from project root):**
+5. Run evaluation:
 
 ```bash
 python run_evaluation.py
 ```
 
-Results are saved to `results/evaluation_results.csv`.
+Evaluation output is saved to `results/evaluation_results.csv`.
 
----
+## Dataset
 
-## Folder structure
+- CRAG Task 1 & 2 dev dataset
+- Place `crag_task_1_and_2_dev_v4.jsonl` in `dataset/`
+- Schema: `docs/dataset.md`
 
-Do not change the folder structure. Required layout and the full case-study description are in `ASSIGNMENT.md`.
+## Notes
+
+- Full assignment details: `ASSIGNMENT.md`
+- Keep folder structure unchanged
