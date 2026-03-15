@@ -5,3 +5,11 @@ __pycache__/
 .venv/
 venv/
 *.egg-info/
+
+# Phase 1 generated artifacts
+crag_phase1.index
+crag_phase1_mapping.pkl
+
+# Large local dataset artifacts
+dataset/crag_task_1_and_2_dev_v4.jsonl
+dataset/crag_task_1_and_2_dev_v4_subset_1.jsonl
