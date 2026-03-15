@@ -1,15 +1,47 @@
-config/config.yaml
+# ── Environment & secrets ──
 .env
+.env.*
+!.env.example
+
+# ── Python ──
 __pycache__/
-*.pyc
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
 .venv/
 venv/
-*.egg-info/
+env/
 
-# Phase 1 generated artifacts
+# ── Generated index artifacts (Phase 1) ──
 crag_phase1.index
 crag_phase1_mapping.pkl
+index/
 
-# Large local dataset artifacts
+# ── Large dataset files ──
 dataset/crag_task_1_and_2_dev_v4.jsonl
 dataset/crag_task_1_and_2_dev_v4_subset_1.jsonl
+dataset/*.jsonl
+
+# ── Config overrides (keep example, ignore local) ──
+config/config.yaml
+
+# ── Frontend ──
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
+
+# ── OS / editor junk ──
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+*.log
