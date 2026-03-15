@@ -135,6 +135,10 @@ function LoadingSkeleton() {
 }
 
 export default function App() {
+  const [theme, setTheme] = useState(() => {
+    if (typeof window === 'undefined') return 'dark'
+    return localStorage.getItem('theme') || 'dark'
+  })
   const [query, setQuery] = useState('')
   const [pipeline, setPipeline] = useState('rag_fusion')
   const [samples, setSamples] = useState([])
@@ -155,9 +159,15 @@ export default function App() {
       .catch(() => setSamples([]))
   }, [])
 
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+    localStorage.setItem('theme', theme)
+  }, [theme])
+
   const canRun = useMemo(() => query.trim().length > 0 && !loading, [query, loading])
   const activePipeline = PIPELINES.find(p => p.value === pipeline)
-  const s = baseStyles
+  const isLight = theme === 'light'
+  const s = useMemo(() => mergeStyles(baseStyles, isLight ? lightStyles : {}), [isLight])
 
   const filteredRec = useMemo(() => {
     if (!searchRec.trim()) return RECOMMENDED
@@ -224,6 +234,15 @@ export default function App() {
         <span style={{ fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.06em' }}>DATASET</span>
       </button>
 
+      <button
+        className="theme-toggle-btn"
+        style={s.themeToggle}
+        onClick={() => setTheme(isLight ? 'dark' : 'light')}
+        title={isLight ? 'Switch to dark mode' : 'Switch to light mode'}
+      >
+        {isLight ? 'Dark Mode' : 'Light Mode'}
+      </button>
+
       {/* Overlay */}
       {sidebarOpen && <div style={s.overlay} onClick={() => setSidebarOpen(false)} />}
 
@@ -255,7 +274,7 @@ export default function App() {
               <span style={s.statusText}>All systems operational</span>
             </div>
             <div style={s.statusProvider}>
-              <span style={{ color: '#94a3b8', fontSize: '0.78rem' }}>Active LLM</span>
+              <span style={{ color: isLight ? '#475569' : '#94a3b8', fontSize: '0.78rem' }}>Active LLM</span>
               <span style={s.providerBadge}>{LLM_PROVIDER}</span>
             </div>
           </div>
@@ -282,10 +301,10 @@ export default function App() {
             {DATASET_DOMAINS.map(d => (
               <div key={d.name} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.78rem', color: '#94a3b8', fontWeight: 500 }}>{d.name}</span>
+                  <span style={{ fontSize: '0.78rem', color: isLight ? '#334155' : '#94a3b8', fontWeight: 500 }}>{d.name}</span>
                   <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.7rem', color: d.color }}>{d.count}</span>
                 </div>
-                <div style={{ height: 4, background: '#1e293b', borderRadius: 99, overflow: 'hidden' }}>
+                <div style={{ height: 4, background: isLight ? '#dbeafe' : '#1e293b', borderRadius: 99, overflow: 'hidden' }}>
                   <div style={{ height: '100%', width: `${d.pct}%`, background: d.color, borderRadius: 99, boxShadow: `0 0 6px ${d.color}66` }} />
                 </div>
               </div>
@@ -300,7 +319,7 @@ export default function App() {
         <div style={s.sidebarSection}>
           <div style={s.sectionLabel}>Recommended Queries</div>
           <div style={s.recSearch}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={isLight ? '#64748b' : '#94a3b8'} strokeWidth="2" strokeLinecap="round">
               <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
             </svg>
             <input
@@ -318,13 +337,13 @@ export default function App() {
               >
                 <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span>{group.icon}</span>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#cbd5e1' }}>{group.domain}</span>
-                  <span style={{ fontSize: '0.74rem', background: '#0f2035', color: '#94a3b8', borderRadius: 99, padding: '1px 7px' }}>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 600, color: isLight ? '#0f172a' : '#cbd5e1' }}>{group.domain}</span>
+                  <span style={{ fontSize: '0.74rem', background: isLight ? '#e2e8f0' : '#0f2035', color: isLight ? '#334155' : '#94a3b8', borderRadius: 99, padding: '1px 7px' }}>
                     {group.questions.length}
                   </span>
                 </span>
                 <svg
-                  width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5" strokeLinecap="round"
+                  width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={isLight ? '#475569' : '#94a3b8'} strokeWidth="2.5" strokeLinecap="round"
                   style={{ transform: openAccordion === group.domain ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s' }}
                 >
                   <path d="M6 9l6 6 6-6"/>
@@ -616,6 +635,11 @@ const css = `
     transition: background 0.25s ease, color 0.25s ease;
   }
 
+  [data-theme='light'] body {
+    background: #f4f7fb;
+    color: #0f172a;
+  }
+
   @keyframes shimmer {
     0% { background-position: 200% 0; }
     100% { background-position: -200% 0; }
@@ -656,9 +680,32 @@ const css = `
     color: #2dd4bf !important;
   }
 
+  [data-theme='light'] .sidebar-toggle-btn:hover {
+    background: #e6f7f5 !important;
+    border-color: #14b8a6 !important;
+    color: #0f766e !important;
+  }
+
+  .theme-toggle-btn:hover {
+    background: #0f1f33 !important;
+    border-color: #2dd4bf !important;
+    color: #2dd4bf !important;
+  }
+
+  [data-theme='light'] .theme-toggle-btn:hover {
+    background: #eff6ff !important;
+    border-color: #3b82f6 !important;
+    color: #1d4ed8 !important;
+  }
+
   .copy-action-btn:hover {
     background: #1e293b !important;
     color: #e2e8f0 !important;
+  }
+
+  [data-theme='light'] .copy-action-btn:hover {
+    background: #e2e8f0 !important;
+    color: #0f172a !important;
   }
 
   .chunk-card:hover {
@@ -700,6 +747,20 @@ const baseStyles = {
     cursor: 'pointer',
     color: '#cbd5e1',
     fontSize: '0.8rem',
+    transition: 'all 0.2s',
+    backdropFilter: 'blur(12px)',
+  },
+  themeToggle: {
+    position: 'fixed', top: 24, right: 150, zIndex: 100,
+    display: 'flex', alignItems: 'center', gap: 8,
+    background: '#0a1628',
+    border: '1px solid #1e2d3d',
+    borderRadius: 999,
+    padding: '10px 16px',
+    cursor: 'pointer',
+    color: '#cbd5e1',
+    fontSize: '0.8rem',
+    fontWeight: 600,
     transition: 'all 0.2s',
     backdropFilter: 'blur(12px)',
   },
@@ -1096,4 +1157,196 @@ const baseStyles = {
     color: '#2dd4bf', fontSize: '0.8rem', fontWeight: 600,
     textDecoration: 'none', transition: 'opacity 0.15s',
   },
+}
+
+const lightStyles = {
+  page: {
+    background: 'linear-gradient(180deg, #f8fbff 0%, #f3f7fb 100%)',
+  },
+  ambient1: {
+    background: 'radial-gradient(circle, rgba(56,189,248,0.12) 0%, transparent 72%)',
+  },
+  ambient2: {
+    background: 'radial-gradient(circle, rgba(45,212,191,0.10) 0%, transparent 72%)',
+  },
+  sidebarToggle: {
+    background: '#ffffff',
+    border: '1px solid #cbd5e1',
+    color: '#334155',
+  },
+  themeToggle: {
+    background: '#ffffff',
+    border: '1px solid #cbd5e1',
+    color: '#334155',
+  },
+  overlay: {
+    background: 'rgba(148,163,184,0.35)',
+  },
+  sidebar: {
+    background: '#ffffff',
+    borderLeft: '1px solid #dbe3ef',
+    boxShadow: '-20px 0 50px rgba(15,23,42,0.12)',
+  },
+  sidebarHeader: {
+    borderBottom: '1px solid #e2e8f0',
+    background: '#ffffff',
+  },
+  sidebarLogo: {
+    background: '#ecfeff',
+    border: '1px solid #99f6e4',
+  },
+  sidebarTitle: { color: '#0f172a' },
+  closeBtn: {
+    background: '#f8fafc',
+    border: '1px solid #dbe3ef',
+    color: '#475569',
+  },
+  sidebarSection: { borderBottom: '1px solid #eef2f7' },
+  sectionLabel: { color: '#64748b' },
+  statusCard: {
+    background: '#f8fafc',
+    border: '1px solid #dbe3ef',
+  },
+  statusText: { color: '#334155' },
+  providerBadge: {
+    background: '#ecfeff',
+    color: '#0f766e',
+    border: '1px solid #99f6e4',
+  },
+  infoCard: {
+    background: '#f8fafc',
+    border: '1px solid #dbe3ef',
+  },
+  infoLabel: { color: '#64748b' },
+  sidebarDesc: { color: '#475569' },
+  recSearch: {
+    background: '#f8fafc',
+    border: '1px solid #dbe3ef',
+  },
+  recSearchInput: { color: '#0f172a' },
+  accordionHead: {
+    background: '#f8fafc',
+    border: '1px solid #dbe3ef',
+  },
+  accordionHeadOpen: { borderColor: '#99f6e4' },
+  accordionBody: {
+    background: '#ffffff',
+    border: '1px solid #dbe3ef',
+    borderTop: 'none',
+  },
+  recQuestion: {
+    borderBottom: '1px solid #eef2f7',
+    color: '#334155',
+  },
+  recQuestionHover: {
+    background: '#eff6ff',
+    color: '#0f172a',
+  },
+  title: { color: '#0f172a' },
+  subtitle: { color: '#475569' },
+  pipelineCard: {
+    background: '#ffffff',
+    border: '1px solid #dbe3ef',
+  },
+  pipelineCardActive: {
+    background: '#ecfeff',
+    border: '1px solid #99f6e4',
+    boxShadow: '0 0 0 1px #99f6e4, inset 0 0 16px rgba(45,212,191,0.06)',
+  },
+  pipelineTag: {
+    background: '#eef2ff',
+    color: '#475569',
+    border: '1px solid #dbe3ef',
+  },
+  pipelineTagActive: {
+    background: '#ccfbf1',
+    color: '#0f766e',
+    border: '1px solid #99f6e4',
+  },
+  pipelineName: { color: '#0f172a' },
+  pipelineDesc: { color: '#475569' },
+  queryPanel: {
+    background: '#ffffff',
+    border: '1px solid #dbe3ef',
+    boxShadow: '0 8px 24px rgba(15,23,42,0.08)',
+  },
+  label: { color: '#475569' },
+  textarea: {
+    background: '#ffffff',
+    border: '1px solid #cbd5e1',
+    color: '#0f172a',
+  },
+  textareaHint: { color: '#64748b' },
+  samplesWrap: { borderTop: '1px solid #e2e8f0' },
+  samplesLabel: { color: '#64748b' },
+  chip: {
+    border: '1px solid #dbe3ef',
+    background: '#f8fafc',
+    color: '#475569',
+  },
+  chipHover: {
+    background: '#eff6ff',
+    borderColor: '#93c5fd',
+    color: '#1d4ed8',
+  },
+  emptyState: {
+    background: '#ffffff',
+    border: '1px solid #dbe3ef',
+  },
+  emptyGlyph: {
+    background: '#ecfeff',
+    border: '1px solid #99f6e4',
+  },
+  emptyTitle: { color: '#0f172a' },
+  emptyText: { color: '#475569' },
+  answerCard: {
+    background: '#ffffff',
+    border: '1px solid #99f6e4',
+    boxShadow: '0 10px 34px rgba(15,23,42,0.09)',
+  },
+  cardHeader: { borderBottom: '1px solid #e2e8f0' },
+  answerIcon: {
+    background: '#ecfeff',
+    border: '1px solid #99f6e4',
+  },
+  cardTitle: { color: '#0f172a' },
+  pipelinePill: {
+    background: '#f1f5f9',
+    color: '#334155',
+    border: '1px solid #dbe3ef',
+  },
+  copyBtn: {
+    background: '#f8fafc',
+    color: '#334155',
+    border: '1px solid #dbe3ef',
+  },
+  answerText: { color: '#1e293b' },
+  chunksTitle: { color: '#475569' },
+  sourcesCount: {
+    background: '#f1f5f9',
+    color: '#334155',
+    border: '1px solid #dbe3ef',
+  },
+  chunkCard: {
+    background: '#ffffff',
+    border: '1px solid #dbe3ef',
+  },
+  chunkIndex: { color: '#475569' },
+  chunkScorePill: {
+    background: '#f8fafc',
+    color: '#334155',
+    border: '1px solid #dbe3ef',
+  },
+  chunkText: { color: '#334155' },
+  chunkFooter: { borderTop: '1px solid #eef2f7' },
+  chunkLink: { color: '#0f766e' },
+}
+
+function mergeStyles(base, overrides) {
+  if (!overrides || Object.keys(overrides).length === 0) return base
+  const merged = { ...base }
+  Object.keys(overrides).forEach((key) => {
+    merged[key] = { ...(base[key] || {}), ...overrides[key] }
+  })
+  return merged
 }
