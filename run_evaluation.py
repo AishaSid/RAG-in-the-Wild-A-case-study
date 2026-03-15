@@ -5,8 +5,9 @@ Do not remove or rename this file.
 
 from __future__ import annotations
 
+import csv
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from src.data_loader import load_examples
 from src.evaluation import evaluate_response
@@ -14,6 +15,9 @@ from src.generation import Generator
 from src.pipelines import crag, graph_rag, hyde, rag_fusion
 from src.retrieval import RetrievalService
 from src.corpus import build_index
+
+RESULTS_DIR = Path("results")
+CSV_PATH = RESULTS_DIR / "evaluation_results.csv"
 
 
 def _load_simple_yaml(path: str) -> Dict[str, Any]:
@@ -91,6 +95,7 @@ def main() -> None:
 
     pipelines = ["rag_fusion", "hyde", "crag", "graph_rag"]
     records = {name: {"correct": 0, "total": 0} for name in pipelines}
+    csv_rows: List[Dict[str, Any]] = []
 
     for ex in load_examples(file_path=dataset_path_abs, limit=20):
         query = ex["query"]
@@ -102,6 +107,13 @@ def main() -> None:
             ok = evaluate_response(out["answer"], gold, alt)
             records[name]["correct"] += 1 if ok else 0
             records[name]["total"] += 1
+            csv_rows.append({
+                "query": query,
+                "pipeline": name,
+                "generated_answer": out["answer"],
+                "ground_truth": gold,
+                "exact_match": 1 if ok else 0,
+            })
 
     print("Evaluation Results")
     print("==================")
@@ -109,6 +121,15 @@ def main() -> None:
         total = records[name]["total"]
         acc = (records[name]["correct"] / total) if total else 0.0
         print(f"{name}: Accuracy={acc:.4f} ({records[name]['correct']}/{total})")
+
+    # ── Save CSV ──
+    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+    fieldnames = ["query", "pipeline", "generated_answer", "ground_truth", "exact_match"]
+    with open(CSV_PATH, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(csv_rows)
+    print(f"\nResults saved to: {CSV_PATH}")
 
 
 if __name__ == "__main__":
