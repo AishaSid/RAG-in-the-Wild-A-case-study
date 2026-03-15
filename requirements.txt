@@ -3,4 +3,5 @@ faiss-cpu
 numpy
 tqdm
 openai
+google-generativeai
 flask
