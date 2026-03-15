@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 
 const PIPELINES = [
-  { label: 'RAG Fusion', value: 'rag_fusion' },
+  { label: 'RAG Fusion (Recommended)', value: 'rag_fusion' },
   { label: 'HyDE', value: 'hyde' },
   { label: 'CRAG', value: 'crag' },
   { label: 'Graph RAG', value: 'graph_rag' },
@@ -22,7 +22,6 @@ const RECOMMENDED = [
       'How many grand slams has Novak Djokovic won on clay courts?',
       'Which sport is the most watched in the US, football or basketball?',
       'By how many points did the Tennessee Titans beat the St. Louis Rams in the 2000 Super Bowl?',
-      'How many 3-point attempts did Steve Nash average per game in seasons he made the 50-40-90 club?',
     ],
   },
   {
@@ -31,7 +30,6 @@ const RECOMMENDED = [
       'Who directed Deadpool 2?',
       'Which movie has a higher number of Academy Awards, The Godfather or Pulp Fiction?',
       'Which Academy Awards category did The Color Purple win?',
-      'Who was the director for Great Moments in Aviation?',
     ],
   },
   {
@@ -40,16 +38,6 @@ const RECOMMENDED = [
       'What iconic band released "Stairway to Heaven" in 1971?',
       'How many Grammys has Beyoncé won throughout her career?',
       'How many times has Taylor Swift won the Grammy Award for Album of the Year?',
-      'How many members are part of Red Hot Chili Peppers?',
-    ],
-  },
-  {
-    domain: 'General', icon: '🌍',
-    questions: [
-      'What are the countries that are located in Southern Africa?',
-      'Which 3 countries have adopted Bitcoin as legal tender?',
-      'What kind of tigers are extinct?',
-      'Which animal has a longer gestation period, whale or giraffe?',
     ],
   },
 ]
@@ -64,7 +52,7 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   useEffect(() => {
-    fetch('/api/sample-queries?limit=15')
+    fetch('/api/sample-queries?limit=10')
       .then((r) => r.json())
       .then((data) => {
         setSamples(Array.isArray(data.samples) ? data.samples : [])
@@ -93,7 +81,7 @@ export default function App() {
       }
       setResult(data)
     } catch (e) {
-      setError(e.message || 'Unknown error')
+      setError(e.message || 'Error connecting to the backend. Is it running?')
     } finally {
       setLoading(false)
     }
@@ -102,8 +90,7 @@ export default function App() {
   return (
     <div style={styles.page}>
       <style>{globalStyles}</style>
-      <div style={styles.bgOrbA} />
-      <div style={styles.bgOrbB} />
+      <div style={styles.bgGlow} />
 
       {/* ── Sidebar toggle button ── */}
       <button
@@ -112,7 +99,7 @@ export default function App() {
         title="Dataset Info & Recommended Questions"
       >
         <span style={{ fontSize: '1.2rem' }}>📋</span>
-        <span style={{ fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.06em' }}>DATASET</span>
+        <span style={{ fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.05em' }}>DATASET</span>
       </button>
 
       {/* ── Sidebar overlay ── */}
@@ -127,7 +114,6 @@ export default function App() {
           <button style={styles.closeBtn} onClick={() => setSidebarOpen(false)}>✕</button>
         </div>
 
-        {/* Stats */}
         <div style={styles.sidebarSection}>
           <div style={styles.sidebarSectionTitle}>Overview</div>
           <div style={styles.statsGrid}>
@@ -140,39 +126,20 @@ export default function App() {
               <span style={styles.statLabel}>Domains</span>
             </div>
           </div>
-          <div style={{ marginTop: '10px', fontSize: '0.82rem', opacity: 0.75, lineHeight: 1.5 }}>
+          <p style={styles.sidebarDesc}>
             CRAG Task 1 & 2 dev set — web-search grounded QA with real retrieved snippets from sources like Britannica, Wikipedia, and financial sites.
-          </div>
+          </p>
         </div>
 
-        {/* Domain breakdown */}
         <div style={styles.sidebarSection}>
-          <div style={styles.sidebarSectionTitle}>Domains</div>
-          {DATASET_DOMAINS.map((d) => (
-            <div key={d.name} style={styles.domainRow}>
-              <span style={{ fontSize: '1rem' }}>{d.icon}</span>
-              <span style={styles.domainName}>{d.name}</span>
-              <div style={styles.domainBarWrap}>
-                <div style={{ ...styles.domainBar, width: `${(d.count / 35) * 100}%`, background: d.color }} />
-              </div>
-              <span style={styles.domainCount}>{d.count}</span>
-            </div>
-          ))}
-          <div style={{ marginTop: '8px', fontSize: '0.78rem', opacity: 0.65 }}>
-            ⚠️ Finance questions use real-time data from 2024 — answers may be stale. Great for testing CRAG's correction path.
-          </div>
-        </div>
-
-        {/* Recommended questions */}
-        <div style={styles.sidebarSection}>
-          <div style={styles.sidebarSectionTitle}>Recommended Questions</div>
+          <div style={styles.sidebarSectionTitle}>Recommended Queries</div>
           {RECOMMENDED.map((group) => (
-            <div key={group.domain} style={{ marginBottom: '14px' }}>
+            <div key={group.domain} style={{ marginBottom: '16px' }}>
               <div style={styles.recGroupLabel}>{group.icon} {group.domain}</div>
               {group.questions.map((q) => (
                 <button
                   key={q}
-                  data-rec
+                  className="rec-btn"
                   style={styles.recQuestion}
                   onClick={() => { setQuery(q); setSidebarOpen(false) }}
                 >
@@ -186,22 +153,27 @@ export default function App() {
 
       <main style={styles.container}>
         <header style={styles.header}>
-          <h1 style={styles.title}>RAG in the Wild Lab</h1>
-          <p style={styles.subtitle}>Run and compare RAG Fusion, HyDE, CRAG, and Graph RAG on a shared global corpus.</p>
+          <div style={styles.badge}>Phase 2 Implementation</div>
+          <h1 style={styles.title}>RAG Evaluation Lab</h1>
+          <p style={styles.subtitle}>
+            Test and compare advanced retrieval strategies (RAG Fusion, HyDE, CRAG, Graph RAG) against a noisy web corpus.
+          </p>
         </header>
 
-        <section style={styles.panel}>
-          <label style={styles.label}>Question</label>
-          <textarea
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Ask a factual question..."
-            style={styles.textarea}
-          />
+        <section style={styles.queryPanel}>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Enter your question</label>
+            <textarea
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="e.g., Who directed Inception?"
+              style={styles.textarea}
+            />
+          </div>
 
           <div style={styles.controlsRow}>
             <div style={styles.controlBlock}>
-              <label style={styles.label}>Pipeline</label>
+              <label style={styles.label}>Select Pipeline</label>
               <select value={pipeline} onChange={(e) => setPipeline(e.target.value)} style={styles.select}>
                 {PIPELINES.map((p) => (
                   <option key={p.value} value={p.value}>
@@ -211,17 +183,19 @@ export default function App() {
               </select>
             </div>
 
-            <button style={styles.button} disabled={!canRun} onClick={runQuery}>
-              {loading ? 'Running...' : 'Run'}
+            <button style={{...styles.button, opacity: canRun ? 1 : 0.6}} disabled={!canRun} onClick={runQuery}>
+              {loading ? (
+                <span><span className="spinner">↻</span> Processing...</span>
+              ) : 'Run Pipeline'}
             </button>
           </div>
 
           {samples.length > 0 && (
             <div style={styles.samplesWrap}>
-              <div style={styles.label}>Sample Queries</div>
+              <span style={styles.label}>Quick Tests:</span>
               <div style={styles.chips}>
                 {samples.map((s, idx) => (
-                  <button key={`${idx}-${s.slice(0, 16)}`} style={styles.chip} onClick={() => setQuery(s)}>
+                  <button key={idx} className="chip-btn" style={styles.chip} onClick={() => setQuery(s)}>
                     {s}
                   </button>
                 ))}
@@ -230,35 +204,51 @@ export default function App() {
           )}
         </section>
 
-        {error && <div style={styles.error}>{error}</div>}
+        {error && <div style={styles.error}><strong>Error:</strong> {error}</div>}
 
         {result && (
-          <section style={styles.results}>
+          <section style={styles.resultsArea}>
+            {/* Primary Answer Card */}
             <div style={styles.answerCard}>
-              <div style={styles.cardTop}>
-                <h2 style={styles.cardTitle}>Generated Answer</h2>
-                <div style={styles.scoreBadge}>Top score: {Number(result.top_score || 0).toFixed(4)}</div>
+              <div style={styles.cardHeader}>
+                <div style={styles.cardTitleWrap}>
+                  <span style={styles.icon}>✨</span>
+                  <h2 style={styles.cardTitle}>Generated Answer</h2>
+                </div>
+                {result.confidence && (
+                  <div style={styles.confidenceBadge}>
+                    CRAG Assessment: <strong>{result.confidence.toUpperCase()}</strong>
+                  </div>
+                )}
               </div>
-              <p style={styles.answerText}>{result.answer}</p>
-              {result.confidence !== null && result.confidence !== undefined && (
-                <div style={styles.metric}>CRAG confidence: {Number(result.confidence).toFixed(4)}</div>
-              )}
+              <div style={styles.answerContent}>
+                {result.answer || "The model could not generate an answer."}
+              </div>
+            </div>
+
+            {/* Retrieved Chunks Grid */}
+            <div style={styles.chunksHeader}>
+              <h3 style={styles.chunksTitle}>Retrieved Context</h3>
+              <span style={styles.chunksMeta}>{result.retrieved?.length || 0} snippets retrieved</span>
             </div>
 
             <div style={styles.retrievalGrid}>
               {(result.retrieved || []).map((chunk, idx) => {
-                const src = chunk.source || {}
+                const score = Number(chunk.score || 0).toFixed(4);
                 return (
-                  <article key={`${chunk.chunk_id}-${idx}`} style={styles.chunkCard}>
+                  <article key={idx} style={styles.chunkCard}>
                     <div style={styles.chunkHead}>
-                      <strong>Chunk #{idx + 1}</strong>
-                      <span>Score: {Number(chunk.score || 0).toFixed(4)}</span>
+                      <span style={styles.chunkId}>Source [{idx + 1}]</span>
+                      <span style={styles.scorePill}>Score: {score}</span>
                     </div>
-                    <p style={styles.chunkText}>{chunk.text}</p>
-                    <div style={styles.sourceLine}>{src.page_name || 'Unknown source'}</div>
-                    <a href={src.page_url || '#'} target="_blank" rel="noreferrer" style={styles.link}>
-                      {src.page_url || 'No URL'}
-                    </a>
+                    <p style={styles.chunkText}>"{chunk.text}"</p>
+                    {chunk.source && (
+                      <div style={styles.chunkFooter}>
+                        <a href={chunk.source} target="_blank" rel="noreferrer" style={styles.link}>
+                          View Source ↗
+                        </a>
+                      </div>
+                    )}
                   </article>
                 )
               })}
@@ -271,121 +261,161 @@ export default function App() {
 }
 
 const globalStyles = `
-  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  
   * { box-sizing: border-box; }
-  body { margin: 0; font-family: 'Space Grotesk', sans-serif; }
-  button[data-rec]:hover { background: rgba(42,157,143,0.12) !important; border-color: rgba(42,157,143,0.4) !important; }
+  body { 
+    margin: 0; 
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
+    background-color: #f4f4f5;
+    color: #18181b;
+  }
+  
+  .rec-btn:hover { background: #f4f4f5 !important; border-color: #d4d4d8 !important; }
+  .chip-btn:hover { background: #e0e7ff !important; border-color: #c7d2fe !important; color: #4338ca !important;}
+  
+  .spinner {
+    display: inline-block;
+    animation: spin 1s linear infinite;
+    margin-right: 8px;
+  }
+  @keyframes spin { 100% { transform: rotate(360deg); } }
 `
 
 const styles = {
   page: {
     minHeight: '100vh',
-    background: 'radial-gradient(circle at 20% 15%, #f2eadf 0%, #f7f2ea 40%, #f3f8f2 100%)',
-    color: '#1f2a1f',
     position: 'relative',
-    overflow: 'hidden',
-    padding: '24px',
+    overflowX: 'hidden',
+    padding: '40px 24px',
   },
-  bgOrbA: {
+  bgGlow: {
     position: 'absolute',
-    width: '420px',
-    height: '420px',
-    right: '-120px',
-    top: '-120px',
-    borderRadius: '999px',
-    background: 'rgba(42, 157, 143, 0.18)',
-    filter: 'blur(30px)',
-  },
-  bgOrbB: {
-    position: 'absolute',
-    width: '360px',
-    height: '360px',
-    left: '-120px',
-    bottom: '-100px',
-    borderRadius: '999px',
-    background: 'rgba(230, 111, 81, 0.16)',
-    filter: 'blur(30px)',
+    top: '-20%',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    width: '80%',
+    height: '600px',
+    background: 'radial-gradient(circle, rgba(79,70,229,0.08) 0%, rgba(255,255,255,0) 70%)',
+    zIndex: 0,
+    pointerEvents: 'none',
   },
   container: {
     position: 'relative',
     zIndex: 2,
-    maxWidth: '1000px',
+    maxWidth: '900px',
     margin: '0 auto',
-    display: 'grid',
-    gap: '18px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '32px',
   },
   header: {
-    display: 'grid',
-    gap: '8px',
+    textAlign: 'center',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '12px',
+  },
+  badge: {
+    background: '#e0e7ff',
+    color: '#4338ca',
+    padding: '6px 14px',
+    borderRadius: '999px',
+    fontSize: '0.75rem',
+    fontWeight: 600,
+    letterSpacing: '0.05em',
+    textTransform: 'uppercase',
   },
   title: {
     margin: 0,
-    fontSize: 'clamp(1.8rem, 2.8vw, 2.8rem)',
-    letterSpacing: '-0.02em',
+    fontSize: '2.5rem',
+    fontWeight: 700,
+    letterSpacing: '-0.03em',
+    color: '#09090b',
   },
   subtitle: {
     margin: 0,
-    opacity: 0.85,
-    maxWidth: '65ch',
+    fontSize: '1.05rem',
+    color: '#52525b',
+    maxWidth: '600px',
+    lineHeight: 1.5,
   },
-  panel: {
-    background: 'rgba(255,255,255,0.7)',
-    border: '1px solid rgba(31,42,31,0.12)',
-    borderRadius: '14px',
-    padding: '16px',
-    display: 'grid',
-    gap: '12px',
-    backdropFilter: 'blur(5px)',
+  queryPanel: {
+    background: '#ffffff',
+    border: '1px solid #e4e4e7',
+    borderRadius: '16px',
+    padding: '24px',
+    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05)',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '20px',
+  },
+  inputGroup: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
   },
   label: {
     fontSize: '0.85rem',
     fontWeight: 600,
-    textTransform: 'uppercase',
-    letterSpacing: '0.08em',
+    color: '#3f3f46',
   },
   textarea: {
     width: '100%',
-    minHeight: '92px',
-    borderRadius: '10px',
-    border: '1px solid #bccab6',
-    padding: '12px',
-    fontFamily: 'Space Grotesk, sans-serif',
+    minHeight: '100px',
+    borderRadius: '12px',
+    border: '1px solid #d4d4d8',
+    padding: '16px',
+    fontFamily: 'inherit',
     fontSize: '1rem',
-    background: '#fffefb',
+    background: '#fafafa',
     resize: 'vertical',
+    transition: 'border-color 0.2s',
+    outline: 'none',
   },
   controlsRow: {
     display: 'flex',
-    gap: '12px',
+    gap: '16px',
     flexWrap: 'wrap',
-    alignItems: 'end',
+    alignItems: 'flex-end',
   },
   controlBlock: {
-    display: 'grid',
-    gap: '6px',
-    minWidth: '220px',
     flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+    minWidth: '200px',
   },
   select: {
+    width: '100%',
     borderRadius: '10px',
-    border: '1px solid #bccab6',
-    padding: '10px',
-    background: '#fffefb',
-    fontFamily: 'Space Grotesk, sans-serif',
+    border: '1px solid #d4d4d8',
+    padding: '12px 16px',
+    fontSize: '0.95rem',
+    background: '#fafafa',
+    fontFamily: 'inherit',
+    outline: 'none',
+    cursor: 'pointer',
   },
   button: {
+    background: '#18181b',
+    color: '#ffffff',
     border: 'none',
-    borderRadius: '12px',
-    padding: '11px 20px',
-    background: 'linear-gradient(120deg, #2a9d8f, #3f7f8c)',
-    color: 'white',
-    fontWeight: 700,
+    borderRadius: '10px',
+    padding: '12px 28px',
+    fontSize: '0.95rem',
+    fontWeight: 600,
     cursor: 'pointer',
-    minWidth: '130px',
+    transition: 'background 0.2s, transform 0.1s',
+    minWidth: '160px',
+    height: '46px',
   },
   samplesWrap: {
-    display: 'grid',
-    gap: '8px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    flexWrap: 'wrap',
+    marginTop: '4px',
   },
   chips: {
     display: 'flex',
@@ -393,254 +423,241 @@ const styles = {
     flexWrap: 'wrap',
   },
   chip: {
-    fontFamily: 'IBM Plex Mono, monospace',
-    fontSize: '0.75rem',
-    border: '1px solid #b4c4ae',
+    fontFamily: 'inherit',
+    fontSize: '0.8rem',
+    border: '1px solid #e4e4e7',
     borderRadius: '999px',
-    padding: '6px 10px',
-    background: '#f8fbf6',
+    padding: '6px 12px',
+    background: '#ffffff',
+    color: '#52525b',
     cursor: 'pointer',
+    transition: 'all 0.2s',
   },
   error: {
-    borderRadius: '10px',
-    border: '1px solid #d62828',
-    padding: '10px 12px',
-    background: '#ffe5e5',
-    color: '#7a1212',
+    background: '#fef2f2',
+    border: '1px solid #fecaca',
+    color: '#991b1b',
+    padding: '16px',
+    borderRadius: '12px',
+    fontSize: '0.95rem',
   },
-  results: {
-    display: 'grid',
-    gap: '14px',
+  resultsArea: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '24px',
+    animation: 'fadeIn 0.5s ease-out',
   },
   answerCard: {
-    background: '#fffefb',
-    borderRadius: '14px',
-    padding: '14px',
-    border: '1px solid rgba(31,42,31,0.15)',
+    background: '#ffffff',
+    border: '1px solid #e4e4e7',
+    borderRadius: '16px',
+    padding: '32px',
+    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05)',
   },
-  cardTop: {
+  cardHeader: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    gap: '12px',
-    flexWrap: 'wrap',
+    marginBottom: '20px',
+    paddingBottom: '16px',
+    borderBottom: '1px solid #f4f4f5',
+  },
+  cardTitleWrap: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+  },
+  icon: {
+    fontSize: '1.5rem',
   },
   cardTitle: {
     margin: 0,
-    fontSize: '1.1rem',
+    fontSize: '1.25rem',
+    fontWeight: 600,
+    color: '#18181b',
   },
-  scoreBadge: {
-    fontFamily: 'IBM Plex Mono, monospace',
-    fontSize: '0.78rem',
-    background: '#eef5ea',
-    border: '1px solid #b4c4ae',
-    borderRadius: '999px',
-    padding: '4px 8px',
-  },
-  answerText: {
-    whiteSpace: 'pre-wrap',
-    lineHeight: 1.6,
-  },
-  metric: {
-    fontFamily: 'IBM Plex Mono, monospace',
+  confidenceBadge: {
+    background: '#f0fdf4',
+    color: '#166534',
+    border: '1px solid #bbf7d0',
+    padding: '6px 12px',
+    borderRadius: '8px',
     fontSize: '0.8rem',
+    fontFamily: "'JetBrains Mono', monospace",
+  },
+  answerContent: {
+    fontSize: '1.05rem',
+    lineHeight: 1.7,
+    color: '#3f3f46',
+    whiteSpace: 'pre-wrap',
+  },
+  chunksHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    padding: '0 8px',
+  },
+  chunksTitle: {
+    margin: 0,
+    fontSize: '1.1rem',
+    color: '#18181b',
+  },
+  chunksMeta: {
+    fontSize: '0.85rem',
+    color: '#71717a',
   },
   retrievalGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-    gap: '10px',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+    gap: '16px',
   },
   chunkCard: {
-    border: '1px solid rgba(31,42,31,0.14)',
+    background: '#ffffff',
+    border: '1px solid #e4e4e7',
     borderRadius: '12px',
-    background: '#fdfcf8',
-    padding: '12px',
-    display: 'grid',
-    gap: '8px',
+    padding: '20px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px',
+    transition: 'box-shadow 0.2s, transform 0.2s',
   },
   chunkHead: {
     display: 'flex',
     justifyContent: 'space-between',
-    gap: '8px',
-    fontFamily: 'IBM Plex Mono, monospace',
+    alignItems: 'center',
+  },
+  chunkId: {
+    fontSize: '0.8rem',
+    fontWeight: 600,
+    color: '#71717a',
+    textTransform: 'uppercase',
+  },
+  scorePill: {
+    fontFamily: "'JetBrains Mono', monospace",
     fontSize: '0.75rem',
+    background: '#f4f4f5',
+    color: '#52525b',
+    padding: '4px 8px',
+    borderRadius: '6px',
+    border: '1px solid #e4e4e7',
   },
   chunkText: {
     margin: 0,
-    lineHeight: 1.5,
-    fontSize: '0.95rem',
+    fontSize: '0.9rem',
+    lineHeight: 1.6,
+    color: '#3f3f46',
+    flex: 1,
   },
-  sourceLine: {
-    fontWeight: 600,
-    fontSize: '0.85rem',
+  chunkFooter: {
+    marginTop: '8px',
+    paddingTop: '12px',
+    borderTop: '1px solid #f4f4f5',
   },
   link: {
-    color: '#1f6f65',
+    color: '#4f46e5',
     textDecoration: 'none',
-    fontSize: '0.8rem',
-    wordBreak: 'break-all',
+    fontSize: '0.85rem',
+    fontWeight: 500,
   },
-  // ── Sidebar ──
+  // Sidebar styling remains largely structurally the same, just updated colors
   sidebarToggle: {
     position: 'fixed',
-    top: '50%',
-    right: 0,
-    transform: 'translateY(-50%)',
+    top: '24px',
+    right: '24px',
     zIndex: 100,
     display: 'flex',
-    flexDirection: 'column',
     alignItems: 'center',
-    gap: '4px',
-    background: 'linear-gradient(160deg, #2a9d8f, #3f7f8c)',
-    color: 'white',
-    border: 'none',
-    borderRadius: '10px 0 0 10px',
-    padding: '14px 10px',
+    gap: '8px',
+    background: '#ffffff',
+    border: '1px solid #e4e4e7',
+    boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
+    borderRadius: '999px',
+    padding: '10px 20px',
     cursor: 'pointer',
-    boxShadow: '-3px 0 12px rgba(42,157,143,0.35)',
-    writingMode: 'vertical-rl',
-    flexDirection: 'row',
-    writingMode: 'initial',
+    color: '#18181b',
+    transition: 'all 0.2s',
   },
   overlay: {
     position: 'fixed',
     inset: 0,
-    background: 'rgba(0,0,0,0.35)',
+    background: 'rgba(9, 9, 11, 0.4)',
     zIndex: 200,
-    backdropFilter: 'blur(2px)',
+    backdropFilter: 'blur(3px)',
   },
   sidebar: {
     position: 'fixed',
     top: 0,
     right: 0,
     height: '100vh',
-    width: '360px',
-    maxWidth: '92vw',
-    background: '#f8fbf7',
-    borderLeft: '1px solid rgba(31,42,31,0.14)',
+    width: '380px',
+    maxWidth: '100vw',
+    background: '#ffffff',
+    borderLeft: '1px solid #e4e4e7',
     zIndex: 300,
     overflowY: 'auto',
-    transition: 'transform 0.28s cubic-bezier(0.4,0,0.2,1)',
-    boxShadow: '-6px 0 30px rgba(0,0,0,0.12)',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 0,
+    transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+    boxShadow: '-10px 0 30px rgba(0,0,0,0.1)',
   },
   sidebarHeader: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: '20px 20px 14px',
-    borderBottom: '1px solid rgba(31,42,31,0.10)',
+    padding: '24px',
+    borderBottom: '1px solid #e4e4e7',
     position: 'sticky',
     top: 0,
-    background: '#f8fbf7',
+    background: '#ffffff',
     zIndex: 1,
   },
-  sidebarTitle: {
-    margin: 0,
-    fontSize: '1.15rem',
-    letterSpacing: '-0.01em',
-  },
+  sidebarTitle: { margin: 0, fontSize: '1.2rem', fontWeight: 600 },
   closeBtn: {
-    background: 'none',
-    border: '1px solid rgba(31,42,31,0.15)',
-    borderRadius: '8px',
+    background: '#f4f4f5',
+    border: 'none',
+    borderRadius: '50%',
+    width: '32px',
+    height: '32px',
     cursor: 'pointer',
-    fontSize: '1rem',
-    padding: '4px 10px',
-    color: '#1f2a1f',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: '#52525b',
   },
-  sidebarSection: {
-    padding: '16px 20px',
-    borderBottom: '1px solid rgba(31,42,31,0.08)',
-  },
+  sidebarSection: { padding: '24px', borderBottom: '1px solid #f4f4f5' },
   sidebarSectionTitle: {
-    fontSize: '0.75rem',
-    fontWeight: 700,
+    fontSize: '0.8rem',
+    fontWeight: 600,
     textTransform: 'uppercase',
-    letterSpacing: '0.10em',
-    opacity: 0.55,
-    marginBottom: '10px',
+    letterSpacing: '0.05em',
+    color: '#71717a',
+    marginBottom: '16px',
   },
-  statsGrid: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '8px',
-  },
+  statsGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' },
   statBox: {
-    background: 'rgba(42,157,143,0.10)',
-    border: '1px solid rgba(42,157,143,0.25)',
-    borderRadius: '10px',
-    padding: '12px',
+    background: '#f8fafc',
+    border: '1px solid #e2e8f0',
+    borderRadius: '12px',
+    padding: '16px',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: '2px',
   },
-  statNum: {
-    fontSize: '1.6rem',
-    fontWeight: 700,
-    color: '#2a9d8f',
-    fontFamily: 'IBM Plex Mono, monospace',
-  },
-  statLabel: {
-    fontSize: '0.72rem',
-    opacity: 0.7,
-    textTransform: 'uppercase',
-    letterSpacing: '0.06em',
-  },
-  domainRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    marginBottom: '7px',
-  },
-  domainName: {
-    fontSize: '0.85rem',
-    fontWeight: 600,
-    minWidth: '56px',
-  },
-  domainBarWrap: {
-    flex: 1,
-    height: '8px',
-    background: 'rgba(31,42,31,0.08)',
-    borderRadius: '999px',
-    overflow: 'hidden',
-  },
-  domainBar: {
-    height: '100%',
-    borderRadius: '999px',
-    transition: 'width 0.4s ease',
-  },
-  domainCount: {
-    fontFamily: 'IBM Plex Mono, monospace',
-    fontSize: '0.78rem',
-    opacity: 0.7,
-    minWidth: '22px',
-    textAlign: 'right',
-  },
-  recGroupLabel: {
-    fontSize: '0.8rem',
-    fontWeight: 700,
-    textTransform: 'uppercase',
-    letterSpacing: '0.06em',
-    opacity: 0.6,
-    marginBottom: '6px',
-  },
+  statNum: { fontSize: '1.8rem', fontWeight: 700, color: '#0f172a', fontFamily: "'JetBrains Mono', monospace" },
+  statLabel: { fontSize: '0.75rem', color: '#64748b', fontWeight: 500, marginTop: '4px' },
+  sidebarDesc: { fontSize: '0.9rem', color: '#52525b', lineHeight: 1.6, marginTop: '16px' },
+  recGroupLabel: { fontSize: '0.9rem', fontWeight: 600, color: '#3f3f46', marginBottom: '10px' },
   recQuestion: {
     display: 'block',
     width: '100%',
     textAlign: 'left',
-    background: 'rgba(255,255,255,0.8)',
-    border: '1px solid rgba(31,42,31,0.12)',
+    background: '#ffffff',
+    border: '1px solid #e4e4e7',
     borderRadius: '8px',
-    padding: '9px 11px',
-    marginBottom: '5px',
+    padding: '12px',
+    marginBottom: '8px',
     cursor: 'pointer',
-    fontSize: '0.88rem',
+    fontSize: '0.9rem',
     lineHeight: 1.4,
-    fontFamily: 'Space Grotesk, sans-serif',
-    transition: 'background 0.15s, border-color 0.15s',
+    color: '#3f3f46',
+    transition: 'all 0.2s',
   },
 }
